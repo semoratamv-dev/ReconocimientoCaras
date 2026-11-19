@@ -259,6 +259,34 @@
       background: #eef1f6;
     }
 
+    .camera-switch {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: #657187;
+      background: white;
+      cursor: pointer;
+      transition: background .2s ease, color .2s ease, opacity .2s ease;
+    }
+
+    .camera-switch svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .camera-switch:hover {
+      color: var(--blue);
+      background: #f4f6fc;
+    }
+
+    .camera-switch:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
     .camera-hint {
       display: flex;
       align-items: center;
@@ -556,6 +584,7 @@
       .camera-head { margin: 0 2px 12px; }
       .camera-actions { gap: 6px; }
       .camera-toggle { min-width: 118px; height: 32px; font-size: 10px; }
+      .camera-switch { width: 32px; height: 32px; }
       .camera-hint { font-size: 9px; }
       .camera-stage { min-height: 370px; }
       #webcam-container { width: min(78%, 330px); }
@@ -626,6 +655,14 @@
               <button id="camera-toggle" class="camera-toggle" type="button" onclick="toggleCamera()" aria-label="Activar cámara">
                 Activar cámara
               </button>
+              <button id="camera-switch" class="camera-switch" type="button" onclick="switchCamera()" aria-label="Cambiar cámara" title="Cambiar cámara" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path d="M20 7v5h-5"></path>
+                  <path d="M18.5 12A7 7 0 0 0 6 7.5L4 9.5"></path>
+                  <path d="M4 17v-5h5"></path>
+                  <path d="M5.5 12A7 7 0 0 0 18 16.5l2-2"></path>
+                </svg>
+              </button>
             </div>
           </div>
           <div id="camera-stage" class="camera-stage">
@@ -669,9 +706,12 @@
     let labelContainer;
     let maxPredictions;
     let running = false;
+    let availableCameras = [];
+    let selectedCameraIndex = 0;
 
     const startButton = document.getElementById("start-button");
     const cameraToggle = document.getElementById("camera-toggle");
+    const cameraSwitch = document.getElementById("camera-switch");
     const placeholder = document.getElementById("camera-placeholder");
     const cameraStage = document.getElementById("camera-stage");
     const cameraHint = document.querySelector(".camera-hint");
@@ -728,11 +768,13 @@
         cameraToggle.setAttribute("aria-label", "Desactivar cámara");
         startButton.disabled = false;
         cameraToggle.disabled = false;
+        await refreshCameras();
         window.requestAnimationFrame(loop);
       } catch (error) {
         running = false;
         startButton.disabled = false;
         cameraToggle.disabled = false;
+        cameraSwitch.disabled = true;
         startButton.textContent = "Activar cámara";
         cameraToggle.textContent = "Activar cámara";
         cameraToggle.setAttribute("aria-label", "Activar cámara");
@@ -741,9 +783,76 @@
       }
     }
 
+    async function refreshCameras() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        cameraSwitch.disabled = true;
+        return;
+      }
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      availableCameras = devices.filter((device) => device.kind === "videoinput");
+      cameraSwitch.disabled = !running || availableCameras.length < 2;
+
+      const stream = webcam && webcam.webcam && webcam.webcam.srcObject;
+      const activeTrack = stream && stream.getVideoTracks()[0];
+      const activeDeviceId = activeTrack && activeTrack.getSettings().deviceId;
+      const activeIndex = availableCameras.findIndex((device) => device.deviceId === activeDeviceId);
+      if (activeIndex >= 0) selectedCameraIndex = activeIndex;
+    }
+
+    async function switchCamera() {
+      if (!running || availableCameras.length < 2) return;
+
+      cameraSwitch.disabled = true;
+      startButton.disabled = true;
+      cameraToggle.disabled = true;
+
+      try {
+        selectedCameraIndex = (selectedCameraIndex + 1) % availableCameras.length;
+        const nextCamera = availableCameras[selectedCameraIndex];
+
+        webcam.stop();
+        webcam = new tmImage.Webcam(400, 400, true);
+        await webcam.setup({
+          deviceId: { exact: nextCamera.deviceId }
+        });
+        await webcam.play();
+
+        const container = document.getElementById("webcam-container");
+        container.innerHTML = "";
+        container.appendChild(webcam.canvas);
+        await refreshCameras();
+      } catch (error) {
+        if (webcam) webcam.stop();
+        running = false;
+        cameraHint.classList.remove("active");
+        cameraHint.textContent = "Esperando conexión";
+        cameraStage.classList.remove("active");
+        placeholder.classList.remove("hidden");
+        liveBadge.classList.remove("active");
+        liveBadge.textContent = "Inactivo";
+        topStatus.classList.remove("live");
+        topStatus.textContent = "Sistema listo";
+        sideDot.classList.remove("live");
+        sideStatusText.textContent = "Cámara desconectada";
+        startButton.classList.remove("stop");
+        cameraToggle.classList.remove("stop");
+        startButton.textContent = "Activar cámara";
+        cameraToggle.textContent = "Activar cámara";
+        cameraToggle.setAttribute("aria-label", "Activar cámara");
+        cameraSwitch.disabled = true;
+        errorMessage.textContent = "No se pudo cambiar a la cámara seleccionada.";
+        errorMessage.style.display = "block";
+      } finally {
+        startButton.disabled = false;
+        cameraToggle.disabled = false;
+      }
+    }
+
     function stopCamera() {
       if (webcam) webcam.stop();
       running = false;
+      cameraSwitch.disabled = true;
       placeholder.classList.remove("hidden");
       cameraStage.classList.remove("active");
       cameraHint.classList.remove("active");
