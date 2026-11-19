@@ -708,6 +708,7 @@
     let running = false;
     let availableCameras = [];
     let selectedCameraIndex = 0;
+    let predictionLoopGeneration = 0;
 
     const startButton = document.getElementById("start-button");
     const cameraToggle = document.getElementById("camera-toggle");
@@ -729,6 +730,23 @@
       await init();
     }
 
+    function stopWebcam() {
+      if (!webcam) return;
+
+      const stream = webcam.webcam && webcam.webcam.srcObject;
+      if (stream) webcam.stop();
+      webcam = null;
+    }
+
+    function startPredictionLoop() {
+      const generation = ++predictionLoopGeneration;
+      window.requestAnimationFrame(() => loop(generation));
+    }
+
+    function stopPredictionLoop() {
+      predictionLoopGeneration++;
+    }
+
     async function init() {
       startButton.disabled = true;
       cameraToggle.disabled = true;
@@ -743,14 +761,15 @@
           createPredictionRows();
         }
 
-        if (!webcam) {
-          webcam = new tmImage.Webcam(400, 400, true);
-          await webcam.setup();
-        }
+        stopWebcam();
+        webcam = new tmImage.Webcam(400, 400, true);
+        await webcam.setup();
 
         await webcam.play();
         running = true;
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        const container = document.getElementById("webcam-container");
+        container.innerHTML = "";
+        container.appendChild(webcam.canvas);
         placeholder.classList.add("hidden");
         cameraStage.classList.add("active");
         cameraHint.classList.add("active");
@@ -769,8 +788,10 @@
         startButton.disabled = false;
         cameraToggle.disabled = false;
         await refreshCameras();
-        window.requestAnimationFrame(loop);
+        startPredictionLoop();
       } catch (error) {
+        stopPredictionLoop();
+        stopWebcam();
         running = false;
         startButton.disabled = false;
         cameraToggle.disabled = false;
@@ -778,6 +799,19 @@
         startButton.textContent = "Activar cámara";
         cameraToggle.textContent = "Activar cámara";
         cameraToggle.setAttribute("aria-label", "Activar cámara");
+        startButton.classList.remove("stop");
+        cameraToggle.classList.remove("stop");
+        document.getElementById("webcam-container").innerHTML = "";
+        placeholder.classList.remove("hidden");
+        cameraStage.classList.remove("active");
+        cameraHint.classList.remove("active");
+        cameraHint.textContent = "Esperando conexión";
+        liveBadge.classList.remove("active");
+        liveBadge.textContent = "Inactivo";
+        topStatus.classList.remove("live");
+        topStatus.textContent = "Sistema listo";
+        sideDot.classList.remove("live");
+        sideStatusText.textContent = "Cámara desconectada";
         errorMessage.textContent = "No se pudo acceder a la cámara. Comprueba los permisos del navegador.";
         errorMessage.style.display = "block";
       }
@@ -811,7 +845,8 @@
         selectedCameraIndex = (selectedCameraIndex + 1) % availableCameras.length;
         const nextCamera = availableCameras[selectedCameraIndex];
 
-        webcam.stop();
+        stopPredictionLoop();
+        stopWebcam();
         webcam = new tmImage.Webcam(400, 400, true);
         await webcam.setup({
           deviceId: { exact: nextCamera.deviceId },
@@ -823,8 +858,10 @@
         container.innerHTML = "";
         container.appendChild(webcam.canvas);
         await refreshCameras();
+        startPredictionLoop();
       } catch (error) {
-        if (webcam) webcam.stop();
+        stopPredictionLoop();
+        stopWebcam();
         running = false;
         cameraHint.classList.remove("active");
         cameraHint.textContent = "Esperando conexión";
@@ -842,6 +879,7 @@
         cameraToggle.textContent = "Activar cámara";
         cameraToggle.setAttribute("aria-label", "Activar cámara");
         cameraSwitch.disabled = true;
+        document.getElementById("webcam-container").innerHTML = "";
         errorMessage.textContent = "No se pudo cambiar a la cámara seleccionada.";
         errorMessage.style.display = "block";
       } finally {
@@ -851,9 +889,11 @@
     }
 
     function stopCamera() {
-      if (webcam) webcam.stop();
       running = false;
+      stopPredictionLoop();
+      stopWebcam();
       cameraSwitch.disabled = true;
+      document.getElementById("webcam-container").innerHTML = "";
       placeholder.classList.remove("hidden");
       cameraStage.classList.remove("active");
       cameraHint.classList.remove("active");
@@ -892,11 +932,13 @@
       }
     }
 
-    async function loop() {
-      if (!running) return;
+    async function loop(generation) {
+      if (!running || generation !== predictionLoopGeneration) return;
       webcam.update();
       await predict();
-      window.requestAnimationFrame(loop);
+      if (running && generation === predictionLoopGeneration) {
+        window.requestAnimationFrame(() => loop(generation));
+      }
     }
 
     async function predict() {
