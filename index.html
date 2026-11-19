@@ -223,6 +223,42 @@
       letter-spacing: -.2px;
     }
 
+    .camera-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .camera-toggle {
+      min-width: 134px;
+      height: 36px;
+      border: 0;
+      border-radius: 10px;
+      color: white;
+      background: var(--blue);
+      font-family: "DM Sans", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s ease, transform .2s ease, opacity .2s ease;
+    }
+
+    .camera-toggle:hover {
+      background: var(--blue-dark);
+      transform: translateY(-1px);
+    }
+
+    .camera-toggle:disabled {
+      opacity: .65;
+      cursor: wait;
+      transform: none;
+    }
+
+    .camera-toggle.stop {
+      color: #657187;
+      background: #eef1f6;
+    }
+
     .camera-hint {
       display: flex;
       align-items: center;
@@ -518,6 +554,8 @@
       .workspace { display: block; }
       .camera-card { min-height: 430px; padding: 14px; }
       .camera-head { margin: 0 2px 12px; }
+      .camera-actions { gap: 6px; }
+      .camera-toggle { min-width: 118px; height: 32px; font-size: 10px; }
       .camera-hint { font-size: 9px; }
       .camera-stage { min-height: 370px; }
       #webcam-container { width: min(78%, 330px); }
@@ -583,7 +621,12 @@
         <div class="card camera-card">
           <div class="camera-head">
             <h2>Vista de cámara</h2>
-            <span class="camera-hint">Esperando conexión</span>
+            <div class="camera-actions">
+              <span class="camera-hint">Esperando conexión</span>
+              <button id="camera-toggle" class="camera-toggle" type="button" onclick="toggleCamera()" aria-label="Activar cámara">
+                Activar cámara
+              </button>
+            </div>
           </div>
           <div id="camera-stage" class="camera-stage">
             <div id="webcam-container"></div>
@@ -609,7 +652,7 @@
           </div>
           <div id="label-container"></div>
           <div class="action-area">
-            <button id="start-button" type="button" onclick="toggleCamera()">Iniciar reconocimiento</button>
+            <button id="start-button" type="button" onclick="toggleCamera()">Activar cámara</button>
             <p id="error-message" class="error"></p>
           </div>
         </div>
@@ -628,6 +671,7 @@
     let running = false;
 
     const startButton = document.getElementById("start-button");
+    const cameraToggle = document.getElementById("camera-toggle");
     const placeholder = document.getElementById("camera-placeholder");
     const cameraStage = document.getElementById("camera-stage");
     const cameraHint = document.querySelector(".camera-hint");
@@ -647,7 +691,9 @@
 
     async function init() {
       startButton.disabled = true;
+      cameraToggle.disabled = true;
       startButton.textContent = "Conectando...";
+      cameraToggle.textContent = "Conectando...";
       errorMessage.style.display = "none";
 
       try {
@@ -676,13 +722,20 @@
         sideDot.classList.add("live");
         sideStatusText.textContent = "Cámara conectada";
         startButton.classList.add("stop");
-        startButton.textContent = "Detener reconocimiento";
+        cameraToggle.classList.add("stop");
+        startButton.textContent = "Desactivar cámara";
+        cameraToggle.textContent = "Desactivar cámara";
+        cameraToggle.setAttribute("aria-label", "Desactivar cámara");
         startButton.disabled = false;
+        cameraToggle.disabled = false;
         window.requestAnimationFrame(loop);
       } catch (error) {
         running = false;
         startButton.disabled = false;
-        startButton.textContent = "Intentar de nuevo";
+        cameraToggle.disabled = false;
+        startButton.textContent = "Activar cámara";
+        cameraToggle.textContent = "Activar cámara";
+        cameraToggle.setAttribute("aria-label", "Activar cámara");
         errorMessage.textContent = "No se pudo acceder a la cámara. Comprueba los permisos del navegador.";
         errorMessage.style.display = "block";
       }
@@ -702,7 +755,10 @@
       sideDot.classList.remove("live");
       sideStatusText.textContent = "Cámara desconectada";
       startButton.classList.remove("stop");
-      startButton.textContent = "Iniciar reconocimiento";
+      cameraToggle.classList.remove("stop");
+      startButton.textContent = "Activar cámara";
+      cameraToggle.textContent = "Activar cámara";
+      cameraToggle.setAttribute("aria-label", "Activar cámara");
 
       for (const row of labelContainer.children) {
         row.querySelector(".prediction-value").textContent = "0%";
