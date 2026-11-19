@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>¿Hombre o Mujer?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #18243a;
+      --muted: #7e899e;
+      --line: #e8ebf2;
+      --cream: #f7f8fc;
+      --blue: #5b7df0;
+      --blue-dark: #4163d5;
+      --violet: #9a86ef;
+      --green: #45b99b;
+      --grey: #B8B0B0;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { color-scheme: light; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: "DM Sans", sans-serif;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(107, 166, 137, .18), transparent 28rem),
+        radial-gradient(circle at 100% 100%, rgba(78, 137, 112, .20), transparent 30rem),
+        #173d32;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 248px 1fr;
+    }
+
+    .sidebar {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 34px 26px 28px;
+      color: #f4f6ff;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(91, 145, 117, .20), transparent 19rem),
+        #122f28;
+      border-right: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: "Manrope", sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -.4px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      color: white;
+      background: linear-gradient(145deg, #7898ff, #a18aee);
+      box-shadow: 0 10px 25px rgba(89, 113, 207, .30);
+    }
+
+    .brand-mark svg { width: 23px; height: 23px; }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+      margin-top: 58px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      height: 48px;
+      padding: 0 14px;
+      border-radius: 12px;
+      color: #a4aec2;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color .2s ease, background .2s ease, transform .2s ease;
+    }
+
+    .nav-item.active {
+      color: #fff;
+      background: rgba(125, 148, 237, .17);
+      box-shadow: inset 3px 0 #91a8ff;
+    }
+
+    .nav-item svg { width: 19px; height: 19px; }
+    .nav-item:not(.active):hover { color: #fff; background: rgba(255, 255, 255, .06); }
+
+    .side-status {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, .10);
+      border-radius: 13px;
+      color: #c1c9d8;
+      font-size: 12px;
+      background: rgba(255, 255, 255, .035);
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #78849a;
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, .07);
+    }
+
+    .status-dot.live {
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(69, 185, 155, .16);
+    }
+
+    main {
+      min-width: 0;
+      padding: 40px 48px 52px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      font-size: 28px;
+      letter-spacing: -1px;
+      line-height: 1.25;
+    }
+
+    .page-eyebrow {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .page-subtitle {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .topbar-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .topbar-status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #b6bfcc;
+    }
+
+    .topbar-status.live::before {
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(80, 191, 165, .10);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(280px, .75fr);
+      gap: 24px;
+      max-width: 1180px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, .88);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 20px 55px rgba(37, 49, 79, .075), 0 2px 8px rgba(37, 49, 79, .025);
+      backdrop-filter: blur(12px);
+    }
+
+    .camera-card {
+      min-height: 640px;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .camera-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 2px 16px;
+    }
+
+    .camera-head h2 {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      font-size: 14px;
+      letter-spacing: -.2px;
+    }
+
+    .camera-hint {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #929caf;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+    }
+
+    .camera-hint::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #c8cfdb;
+    }
+
+    .camera-hint.active { color: #3fa68f; }
+    .camera-hint.active::before { background: var(--green); }
+
+    .camera-stage {
+      position: relative;
+      flex: 1;
+      min-height: 540px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid rgba(226, 231, 242, .8);
+      border-radius: 15px;
+      background:
+        linear-gradient(rgba(255,255,255,.38), rgba(255,255,255,.38)),
+        radial-gradient(circle at 50% 45%, #e7ecfa 0 8%, #f3f5fa 42%, #edf0f7 100%);
+    }
+
+    .camera-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .35;
+      background-image: radial-gradient(#d7deea 1px, transparent 1px);
+      background-size: 18px 18px;
+      mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+    }
+
+    #webcam-container {
+      position: relative;
+      z-index: 1;
+      width: min(84%, 560px);
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      filter: drop-shadow(0 18px 34px rgba(75, 91, 136, .12));
+    }
+
+    #webcam-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 50%;
+      border: 10px solid white;
+      object-fit: cover;
+      box-shadow: 0 16px 38px rgba(75, 91, 136, .12);
+    }
+
+    .camera-placeholder {
+      position: absolute;
+      z-index: 2;
+      text-align: center;
+      transition: opacity .25s ease;
+    }
+
+    .camera-placeholder.hidden { opacity: 0; pointer-events: none; }
+
+    .camera-icon {
+      width: 82px;
+      height: 82px;
+      margin: 0 auto 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #94a0b5;
+      background: white;
+      box-shadow: 0 12px 35px rgba(78, 91, 125, .10);
+    }
+
+    .camera-icon svg { width: 34px; height: 34px; }
+
+    .camera-placeholder strong {
+      display: block;
+      margin-bottom: 6px;
+      font-family: "Manrope", sans-serif;
+      font-size: 16px;
+    }
+
+    .camera-placeholder span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .corner {
+      position: absolute;
+      z-index: 3;
+      width: 38px;
+      height: 38px;
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .camera-stage.active .corner { opacity: 1; }
+    .corner::before, .corner::after { content: ""; position: absolute; background: white; }
+    .corner::before { width: 38px; height: 3px; }
+    .corner::after { width: 3px; height: 38px; }
+    .corner.tl { left: 18px; top: 18px; }
+    .corner.tr { right: 18px; top: 18px; transform: rotate(90deg); }
+    .corner.bl { left: 18px; bottom: 18px; transform: rotate(-90deg); }
+    .corner.br { right: 18px; bottom: 18px; transform: rotate(180deg); }
+
+    .analysis-card {
+      display: flex;
+      flex-direction: column;
+      padding: 26px;
+    }
+
+    .analysis-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .analysis-head h2 {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      font-size: 17px;
+      letter-spacing: -.3px;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 20px;
+      color: #8d97a8;
+      background: #f3f5f8;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+
+    .live-badge::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #bbc3cf;
+    }
+
+    .live-badge.active {
+      color: #3fa68f;
+      background: #edf8f5;
+    }
+    .live-badge.active::before { background: var(--green); }
+
+    #label-container {
+      display: grid;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .prediction {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .prediction-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 11px;
+    }
+
+    .prediction-name {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+    .prediction-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .prediction:nth-child(2) .prediction-dot { background: var(--violet); }
+    .prediction-value { color: var(--muted); font-size: 13px; font-weight: 700; }
+
+    .bar {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #edf0f5;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #668cf3, #82a2f7);
+      transition: width .35s ease;
+    }
+
+    .prediction:nth-child(2) .bar-fill {
+      background: linear-gradient(90deg, #9a86ef, #b7a7f6);
+    }
+
+    .action-area {
+      margin-top: auto;
+      padding-top: 24px;
+    }
+
+    #start-button {
+      width: 100%;
+      height: 52px;
+      border: 0;
+      border-radius: 13px;
+      color: white;
+      background: linear-gradient(135deg, var(--blue), #7294f4);
+      box-shadow: 0 12px 26px rgba(77, 125, 243, .22);
+      font-family: "DM Sans", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    #start-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 30px rgba(77, 125, 243, .28);
+    }
+
+    #start-button:disabled { opacity: .65; cursor: wait; transform: none; }
+    #start-button.stop { background: #eef1f6; color: #657187; box-shadow: none; }
+
+    .error {
+      display: none;
+      margin: 14px 0 0;
+      color: #b64c62;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 82px 1fr; }
+      .sidebar { align-items: center; padding-inline: 15px; }
+      .brand span, .nav-item span, .side-status span { display: none; }
+      .nav-item { width: 48px; justify-content: center; padding: 0; }
+      .side-status { padding: 12px; }
+      main { padding-inline: 24px; }
+      .workspace { grid-template-columns: 1fr; }
+      .camera-card { min-height: 560px; }
+      .camera-stage { min-height: 490px; }
+      .analysis-card { min-height: 320px; }
+    }
+
+    @media (max-width: 620px) {
+      .app { display: block; }
+      .sidebar {
+        height: 72px;
+        flex-direction: row;
+        justify-content: space-between;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        padding: 14px 18px;
+      }
+      .brand span { display: inline; }
+      .nav, .side-status { display: none; }
+      main { padding: 22px 16px 32px; }
+      .topbar { margin-bottom: 18px; }
+      h1 { font-size: 23px; }
+      .page-eyebrow { margin-bottom: 6px; }
+      .page-subtitle { max-width: 270px; font-size: 12px; line-height: 1.5; }
+      .topbar-status { display: none; }
+      .workspace { display: block; }
+      .camera-card { min-height: 430px; padding: 14px; }
+      .camera-head { margin: 0 2px 12px; }
+      .camera-hint { font-size: 9px; }
+      .camera-stage { min-height: 370px; }
+      #webcam-container { width: min(78%, 330px); }
+      .analysis-card { margin-top: 14px; min-height: 300px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="8" r="3.2"></circle>
+            <path d="M5.5 19c.8-3.5 3-5.3 6.5-5.3s5.7 1.8 6.5 5.3"></path>
+          </svg>
+        </div>
+        <span>Visión</span>
+      </div>
+
+      <nav class="nav" aria-label="Navegación principal">
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="5" width="18" height="14" rx="3"></rect>
+            <circle cx="12" cy="12" r="3.5"></circle>
+          </svg>
+          <span>Reconocimiento</span>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path>
+          </svg>
+          <span>Estadísticas</span>
+        </div>
+      </nav>
+
+      <div class="side-status">
+        <div id="side-dot" class="status-dot"></div>
+        <span id="side-status-text">Cámara desconectada</span>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="page-eyebrow">Visión inteligente</p>
+          <h1>¿Hombre o Mujer?</h1>
+          <p class="page-subtitle">Identifica y analiza rostros en tiempo real.</p>
+        </div>
+        <div id="top-status" class="topbar-status">Sistema listo</div>
+      </header>
+
+      <section class="workspace">
+        <div class="card camera-card">
+          <div class="camera-head">
+            <h2>Vista de cámara</h2>
+            <span class="camera-hint">Esperando conexión</span>
+          </div>
+          <div id="camera-stage" class="camera-stage">
+            <div id="webcam-container"></div>
+            <div id="camera-placeholder" class="camera-placeholder">
+              <div class="camera-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <rect x="3" y="6" width="13" height="12" rx="3"></rect>
+                  <path d="M16 10l5-3v10l-5-3z"></path>
+                </svg>
+              </div>
+              <strong>Vista previa</strong>
+              <span>Inicia la cámara para comenzar</span>
+            </div>
+            <i class="corner tl"></i><i class="corner tr"></i>
+            <i class="corner bl"></i><i class="corner br"></i>
+          </div>
+        </div>
+
+        <div class="card analysis-card">
+          <div class="analysis-head">
+            <h2>Análisis en tiempo real</h2>
+            <div id="live-badge" class="live-badge">Inactivo</div>
+          </div>
+          <div id="label-container"></div>
+          <div class="action-area">
+            <button id="start-button" type="button" onclick="toggleCamera()">Iniciar reconocimiento</button>
+            <p id="error-message" class="error"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script>
+    const URL = "modelo/";
+    let model;
+    let webcam;
+    let labelContainer;
+    let maxPredictions;
+    let running = false;
+
+    const startButton = document.getElementById("start-button");
+    const placeholder = document.getElementById("camera-placeholder");
+    const cameraStage = document.getElementById("camera-stage");
+    const cameraHint = document.querySelector(".camera-hint");
+    const liveBadge = document.getElementById("live-badge");
+    const topStatus = document.getElementById("top-status");
+    const sideDot = document.getElementById("side-dot");
+    const sideStatusText = document.getElementById("side-status-text");
+    const errorMessage = document.getElementById("error-message");
+
+    async function toggleCamera() {
+      if (running) {
+        stopCamera();
+        return;
+      }
+      await init();
+    }
+
+    async function init() {
+      startButton.disabled = true;
+      startButton.textContent = "Conectando...";
+      errorMessage.style.display = "none";
+
+      try {
+        if (!model) {
+          model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+          maxPredictions = model.getTotalClasses();
+          createPredictionRows();
+        }
+
+        if (!webcam) {
+          webcam = new tmImage.Webcam(400, 400, true);
+          await webcam.setup();
+        }
+
+        await webcam.play();
+        running = true;
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+        placeholder.classList.add("hidden");
+        cameraStage.classList.add("active");
+        cameraHint.classList.add("active");
+        cameraHint.textContent = "Cámara conectada";
+        liveBadge.classList.add("active");
+        liveBadge.textContent = "En vivo";
+        topStatus.classList.add("live");
+        topStatus.textContent = "Cámara activa";
+        sideDot.classList.add("live");
+        sideStatusText.textContent = "Cámara conectada";
+        startButton.classList.add("stop");
+        startButton.textContent = "Detener reconocimiento";
+        startButton.disabled = false;
+        window.requestAnimationFrame(loop);
+      } catch (error) {
+        running = false;
+        startButton.disabled = false;
+        startButton.textContent = "Intentar de nuevo";
+        errorMessage.textContent = "No se pudo acceder a la cámara. Comprueba los permisos del navegador.";
+        errorMessage.style.display = "block";
+      }
+    }
+
+    function stopCamera() {
+      if (webcam) webcam.stop();
+      running = false;
+      placeholder.classList.remove("hidden");
+      cameraStage.classList.remove("active");
+      cameraHint.classList.remove("active");
+      cameraHint.textContent = "Esperando conexión";
+      liveBadge.classList.remove("active");
+      liveBadge.textContent = "Inactivo";
+      topStatus.classList.remove("live");
+      topStatus.textContent = "Sistema listo";
+      sideDot.classList.remove("live");
+      sideStatusText.textContent = "Cámara desconectada";
+      startButton.classList.remove("stop");
+      startButton.textContent = "Iniciar reconocimiento";
+
+      for (const row of labelContainer.children) {
+        row.querySelector(".prediction-value").textContent = "0%";
+        row.querySelector(".bar-fill").style.width = "0%";
+      }
+    }
+
+    function createPredictionRows() {
+      labelContainer = document.getElementById("label-container");
+      labelContainer.innerHTML = "";
+      for (let i = 0; i < maxPredictions; i++) {
+        const row = document.createElement("div");
+        row.className = "prediction";
+        row.innerHTML =
+          '<div class="prediction-top">' +
+            '<div class="prediction-name"><span class="prediction-dot"></span><span class="prediction-label"></span></div>' +
+            '<span class="prediction-value">0%</span>' +
+          '</div>' +
+          '<div class="bar"><div class="bar-fill"></div></div>';
+        labelContainer.appendChild(row);
+      }
+    }
+
+    async function loop() {
+      if (!running) return;
+      webcam.update();
+      await predict();
+      window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+      const prediction = await model.predict(webcam.canvas);
+      prediction
+        .map((item, index) => ({ item, index }))
+        .sort((a, b) => b.item.probability - a.item.probability)
+        .forEach(({ item, index }) => {
+          const row = labelContainer.children[index];
+          const percentage = Math.round(item.probability * 100);
+          row.querySelector(".prediction-label").textContent = item.className;
+          row.querySelector(".prediction-value").textContent = percentage + "%";
+          row.querySelector(".bar-fill").style.width = percentage + "%";
+        });
+    }
+  </script>
+</body>
+</html>
