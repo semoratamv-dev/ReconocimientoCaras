@@ -19,6 +19,8 @@ las imágenes en las clases **hombres** y **mujeres**.
 
 ## Cómo ejecutar
 
+Desde cualquier dispositivo: https://semoratamv-dev.github.io/ReconocimientoCaras/
+
 Desde la carpeta del proyecto, inicia un servidor web local. Por ejemplo, con
 Python instalado:
 
